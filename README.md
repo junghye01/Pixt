@@ -8,13 +8,8 @@
 - task/config : configuration file
 
 ## How to excute pytorch lightning code
-<pre>
-<code>
-```shell
-excute code : python ./task/pixt_baseline/train.py
+```bash
+python ./task/pixt_baseline/train.py
 ```
-</code>
-</pre>
-
 ## Reference
 pytorch lightning documents : <https://lightning.ai/docs/pytorch/latest/>
