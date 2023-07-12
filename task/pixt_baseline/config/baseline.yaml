@@ -1,0 +1,33 @@
+datamodule:
+  image_dir: c:\pixt\data\
+  annotation_dir:
+    train: c:\pixt\data\annotation\annotation_merged_remove_gap.csv
+    valid: c:\pixt\data\annotation\annotation_merged_remove_gap.csv
+    test: c:\pixt\data\annotation\annotation_merged_remove_gap.csv
+  num_workers: 0
+  batch_size: 16
+
+loss:
+  ce_loss_weight: 1.0
+
+module:
+  classes_ko_dir: c:\pixt\data\annotation\all_class_list_ko.pt
+  classes_en_dir: c:\pixt\data\annotation\all_class_list_en.pt
+  max_length: 500
+  lr: 5.0e-05
+
+logger:
+  save_root: 'c:\pixt\outputs'
+  log_dirname: 'pixt_baseline'
+  name: lightning_logs
+
+callbacks:
+  checkpoint:
+    monitor: train\ce_loss
+    save_top_k: 1
+    mode: min
+
+trainer:
+  accelerator: gpu
+  devices: 1
+  max_epochs: 10

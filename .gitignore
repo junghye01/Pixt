@@ -1,0 +1,8 @@
+.ipynb_checkpoints
+.vscode
+
+data/dataset1
+data/dataset2
+data/dataset3
+
+check_defined_class/model.pt
