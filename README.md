@@ -1,4 +1,5 @@
 ## Directory Description
+- check_defined class : sample code & how to use the class
 - data : annotation file & pre-process code
 - dataset : define pixt dataset class
 - datamodule : define pytorch lightning datamodule class
