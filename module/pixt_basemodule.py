@@ -79,9 +79,8 @@ class BaselineLitModule(pl.LightningModule):
     def _parse_batch(
         self, batch: list[dict[str, torch.Tensor]]
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        inputs = batch
-        image_tensor = inputs.get("image_tensor", None)
-        text_ko = inputs.get("text_ko")
+        image_tensor = batch.get("image_tensor", None)
+        text_ko = batch.get("text_ko")
         text_tensor, target_tensor = self._get_text_and_target_tensor(text_ko)
 
         text_tensor = text_tensor.to("cuda")
