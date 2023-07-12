@@ -14,6 +14,6 @@
 excute code : python ./task/pixt_baseline/train.py
 ```
 </code>
-<code>
+<pre>
 
 pytorch lightning documents : <https://lightning.ai/docs/pytorch/latest/>
