@@ -1,1 +1,1 @@
-from .pixt_dataset import Pixt_Dataset
+from .pixt_dataset import Pixt_Dataset, Pixt_Test_Dataset

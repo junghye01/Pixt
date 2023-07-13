@@ -1,9 +1,8 @@
 datamodule:
   image_dir: c:\pixt\data\
   annotation_dir:
-    train: c:\pixt\data\annotation\annotation_merged_remove_gap.csv
-    valid: c:\pixt\data\annotation\annotation_merged_remove_gap.csv
-    test: c:\pixt\data\annotation\annotation_merged_remove_gap.csv
+    train: c:\pixt\data\annotation\annotation_merged_remove_gap\train.csv
+    valid: c:\pixt\data\annotation\annotation_merged_remove_gap\valid.csv
   num_workers: 0
   batch_size: 16
 
@@ -23,7 +22,7 @@ logger:
 
 callbacks:
   checkpoint:
-    monitor: train\ce_loss
+    monitor: valid\ce_loss
     save_top_k: 1
     mode: min
 

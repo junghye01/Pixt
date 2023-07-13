@@ -3,7 +3,7 @@ from beartype import beartype
 import lightning.pytorch as pl
 import torch
 from torch.utils.data import DataLoader
-from dataset import Pixt_Dataset
+from dataset import Pixt_Dataset, Pixt_Test_Dataset
 from dataset.transform import Pixt_ImageTransform
 
 
@@ -34,9 +34,8 @@ class BaselineLitDataModule(pl.LightningDataModule):
             self._annotation_dir["valid"],
             transform=image_transform,
         )
-        self._dataset_test = Pixt_Dataset(
+        self._dataset_test = Pixt_Test_Dataset(
             self._img_dir,
-            self._annotation_dir["test"],
             transform=image_transform,
         )
 
@@ -78,5 +77,4 @@ class BaselineLitDataModule(pl.LightningDataModule):
             num_workers=self._num_workers,
             batch_size=self._batch_size,
             persistent_workers=False,
-            collate_fn=self.collate_fn,
         )

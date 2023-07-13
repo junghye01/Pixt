@@ -69,6 +69,10 @@ def main(cfg) -> None:
     )
     trainer.fit(model=lit_module, datamodule=lit_data_module)
 
+    # model = MyLightningModule.load_from_checkpoint(PATH)
+    # trainer = Trainer()
+    # trainer.test(model, dataloaders=test_dataloader)
+
 
 if __name__ == "__main__":
     config_path = "./config/baseline.yaml"

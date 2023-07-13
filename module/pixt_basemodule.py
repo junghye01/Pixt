@@ -1,6 +1,8 @@
+from typing import Any, Optional
 import lightning.pytorch as pl
 import clip
 import random
+from lightning.pytorch.utilities.types import STEP_OUTPUT
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -32,7 +34,7 @@ class BaselineLitModule(pl.LightningModule):
     def _get_tags_all_list(self, classes_dir: str) -> list:
         return torch.load(classes_dir)
 
-    def _get_text_and_target_tensor(self, text_ko: list[list]) -> list[torch.Tensor]:
+    def _get_text_and_target_tensor(self, text_ko: list[list]) -> tuple[torch.Tensor]:
         # true label인 tag 담기
         text_input_ko_list = []
         for tags_ko in text_ko:  # batch size 만큼 iteration
@@ -97,7 +99,7 @@ class BaselineLitModule(pl.LightningModule):
             weight_decay=0.2,
         )
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch, batch_idx) -> dict[str, Any]:
         optim = self.optimizers()
         image, text, target = self._parse_batch(batch)
 
@@ -109,5 +111,17 @@ class BaselineLitModule(pl.LightningModule):
         optim.step()
 
         self.log("train\ce_loss", loss, on_step=False, on_epoch=True, batch_size=image.shape[0])
+        loss_dict = {"loss": loss}
+        return loss_dict
 
-        return loss
+    def validation_step(self, batch, batch_idx) -> dict[str, Any]:
+        image, text, target = self._parse_batch(batch)
+        logits_per_image, logits_per_text = self._clip_model(image, text)
+        loss = self._base_loss_func(logits_per_image, logits_per_text, target)
+
+        self.log("valid\ce_loss", loss, on_step=False, on_epoch=True, batch_size=image.shape[0])
+        loss_dict = {"loss": loss}
+        return loss_dict
+
+    # def test_step(self, *args: Any, **kwargs: Any) -> STEP_OUTPUT | None:
+    #     return super().test_step(*args, **kwargs)

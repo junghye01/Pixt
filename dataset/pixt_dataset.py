@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from PIL import Image
 import torch
@@ -31,4 +32,24 @@ class Pixt_Dataset(Dataset):
         tags_ko = self._get_tags_ko(index)
 
         input_data = {"image_tensor": image_tensor, "text_ko": tags_ko}
+        return input_data
+
+
+class Pixt_Test_Dataset(Dataset):
+    def __init__(self, img_dir: str, transform: nn.Module):
+        super().__init__
+        self._img_dir = img_dir
+        self._transform = transform
+
+    def __len__(self):
+        return len(os.listdir(os.path.join(self._img_dir, "dataset3")))
+
+    def _get_image(self, index: int) -> torch.Tensor:
+        filename = str(index + 1) + ".webp"
+        file_path = os.path.join(*[self._img_dir, "dataset3", filename])
+        return self._transform(Image.open(file_path).convert("RGB")).float()
+
+    def __getitem__(self, index: int) -> dict:
+        image_tensor = self._get_image(index)
+        input_data = {"image_tensor": image_tensor}
         return input_data
