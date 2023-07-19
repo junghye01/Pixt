@@ -3,6 +3,7 @@ import sys
 sys.path.append("C:\\pixt")
 
 import os
+import glob
 import yaml
 import clip
 import torch
@@ -49,10 +50,6 @@ def main(cfg) -> None:
 
     save_dir = os.path.join(cfg["logger"]["save_root"], cfg["logger"]["log_dirname"])
     logger = TensorBoardLogger(save_dir=save_dir, name=cfg["logger"]["name"])
-    if not os.path.exists(logger.log_dir):
-        os.makedirs(logger.log_dir)
-    cfg["log_dir"] = logger.log_dir
-    OmegaConf.save(cfg, f"{logger.log_dir}/config.yaml")
 
     checkpoint_callback = ModelCheckpoint(
         dirpath=logger.log_dir,
@@ -69,10 +66,16 @@ def main(cfg) -> None:
         callbacks=callbacks,
         max_epochs=cfg["trainer"]["max_epochs"],
     )
-    trainer.fit(model=lit_module, datamodule=lit_data_module)
+
+    trainer.test(model=lit_module, datamodule=lit_data_module, ckpt_path=cfg["ckpt_path"])
 
 
 if __name__ == "__main__":
-    config_path = "./config/baseline.yaml"
+    root_dir = "c:\pixt\outputs\pixt_baseline\lightning_logs\\version_5"
+    config_path = root_dir + "\config.yaml"
+    ckpt_path = glob.glob(root_dir + "\*.ckpt")[0]
+    print(config_path)
+    print(ckpt_path)
     cfg = yaml.load(open(config_path, "r"), Loader=yaml.FullLoader)
+    cfg["ckpt_path"] = ckpt_path
     main(cfg)

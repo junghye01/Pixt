@@ -1,11 +1,10 @@
-from typing import Any, Optional
+from typing import Any
 import lightning.pytorch as pl
 import clip
 import random
-from lightning.pytorch.utilities.types import STEP_OUTPUT
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import json
 
 
 class BaselineLitModule(pl.LightningModule):
@@ -30,6 +29,8 @@ class BaselineLitModule(pl.LightningModule):
         self._optim = optim
         self._lr = lr
         self.automatic_optimization = False
+
+        self._test_log_dict = {}
 
     def _get_tags_all_list(self, classes_dir: str) -> list:
         return torch.load(classes_dir)
@@ -82,7 +83,7 @@ class BaselineLitModule(pl.LightningModule):
         self, batch: list[dict[str, torch.Tensor]]
     ) -> tuple[torch.Tensor, torch.Tensor]:
         image_tensor = batch.get("image_tensor", None)
-        text_ko = batch.get("text_ko")
+        text_ko = batch.get("text_ko", None)
         text_tensor, target_tensor = self._get_text_and_target_tensor(text_ko)
 
         text_tensor = text_tensor.to("cuda")
@@ -123,5 +124,25 @@ class BaselineLitModule(pl.LightningModule):
         loss_dict = {"loss": loss}
         return loss_dict
 
-    # def test_step(self, *args: Any, **kwargs: Any) -> STEP_OUTPUT | None:
-    #     return super().test_step(*args, **kwargs)
+    def test_step(self, batch, batch_idx) -> None:
+        image_tensor = batch.get("image_tensor", None)
+        classes_list = list(set([tag_en.lower() for tag_en in self._tags_en_all_list]))
+        text_tensor = torch.cat([clip.tokenize(f"a photo of a {c}") for c in classes_list])
+
+        image_features = self._clip_model.encode_image(image_tensor)
+        text_features = self._clip_model.encode_text(text_tensor)
+
+        image_features /= image_features.norm(dim=-1, keepdim=True)
+        text_features /= text_features.norm(dim=-1, keepdim=True)
+
+        similarity = (100.0 * image_features @ text_features.T).softmax(dim=-1)
+        values, indices = similarity[0].topk(10)
+
+        prediction_dict = {}
+        for value, index in zip(values, indices):
+            prediction_dict[classes_list[index]] = value.item()
+        self._test_log_dict[str(batch_idx)] = {prediction_dict}
+
+    # def on_test_end(self) -> None:
+    #     with open(save_dir, "w") as f:
+    #         f.write(json.dumps(metric_dict))
