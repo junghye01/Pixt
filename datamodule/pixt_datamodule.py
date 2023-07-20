@@ -15,12 +15,14 @@ class BaselineLitDataModule(pl.LightningDataModule):
         annotation_dir: dict,
         num_workers: int,
         batch_size: int,
+        test_batch_size: int,
     ) -> None:
         super().__init__()
         self._img_dir = img_dir
         self._annotation_dir = annotation_dir
         self._num_workers = num_workers
         self._batch_size = batch_size
+        self._test_batch_size = test_batch_size
 
     def setup(self, stage: Optional[str] = None) -> None:
         image_transform = Pixt_ImageTransform()
@@ -75,6 +77,6 @@ class BaselineLitDataModule(pl.LightningDataModule):
             shuffle=False,
             drop_last=False,
             num_workers=self._num_workers,
-            batch_size=self._batch_size,
+            batch_size=self._test_batch_size,
             persistent_workers=False,
         )

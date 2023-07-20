@@ -5,6 +5,7 @@ datamodule:
     valid: c:\pixt\data\annotation\annotation_merged_remove_gap\valid.csv
   num_workers: 0
   batch_size: 16
+  test_batch_size: 1
 
 loss:
   ce_loss_weight: 1.0
