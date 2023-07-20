@@ -43,13 +43,13 @@ class BaselineLitModule(pl.LightningModule):
                 text_input_ko_list.append(tag_ko)
         text_input_ko_list = list(set(text_input_ko_list))
 
-        # false label with random sampling 인 tag 담기
-        while True:
-            random_sample = random.sample(self._tags_ko_all_list, 1)[0]
-            if random_sample not in text_input_ko_list:
-                text_input_ko_list.append(random_sample)
-            if len(text_input_ko_list) == self._max_length:
-                break
+        # false label with negative sampling 인 tag 담기
+        num_true_labels=len(text_input_ko_list)
+        num_false_labels=self._max_length-num_true_labels
+
+        available_false_labels=list(set(self._tags_ko_all_list)-set(text_input_ko_list))
+        sampled_false_labels=random.sample(self._tags_ko_all_list,num_false_labels)
+        text_input_ko_list.extend(sampled_false_labels)
 
         # 한국어(text_input_ko_list)에서 영어(text_input_en_list)로 번역하기
         text_input_en_list = [
