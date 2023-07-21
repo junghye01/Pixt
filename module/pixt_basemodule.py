@@ -130,6 +130,7 @@ class BaselineLitModule(pl.LightningModule):
         text_tensor = torch.cat([clip.tokenize(f"a photo of a {c}") for c in classes_list])
 
         image_features = self._clip_model.encode_image(image_tensor)
+        text_tensor = text_tensor.to(image_features.device)
         text_features = self._clip_model.encode_text(text_tensor)
 
         image_features /= image_features.norm(dim=-1, keepdim=True)
@@ -138,11 +139,21 @@ class BaselineLitModule(pl.LightningModule):
         similarity = (100.0 * image_features @ text_features.T).softmax(dim=-1)
         values, indices = similarity[0].topk(10)
 
-        prediction_dict = {}
-        for value, index in zip(values, indices):
-            prediction_dict[classes_list[index]] = value.item()
-        self._test_log_dict[str(batch_idx)] = {prediction_dict}
+        # batch에 있는 이미지 파일명
+        # batch_image_filenames = batch.get("image_filename", None)
 
-    # def on_test_end(self) -> None:
-    #     with open(save_dir, "w") as f:
-    #         f.write(json.dumps(metric_dict))
+        print(batch_idx)
+        # image_filename = batch_image_filenames[0]
+
+        image_prediction_dict = {}
+        # prediction_dict={}
+        for value, index in zip(values, indices):
+            image_prediction_dict[classes_list[index]] = value.item()
+        # prediction_dict[image_filename]=image_prediction_dict
+
+        self._test_log_dict[str(batch_idx) + ".webp"] = image_prediction_dict
+        print("result", self._test_log_dict)
+
+    def on_test_end(self) -> None:
+        with open(self.saved_path, "w", encoding="utf-8") as f:
+            json.dump(self._test_log_dict, f, indent="\t")

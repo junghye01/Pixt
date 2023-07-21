@@ -11,7 +11,10 @@ class BaseLoss(nn.Module):
     def forward(
         self, logits_per_image: torch.Tensor, logits_per_text: torch.Tensor, target: torch.Tensor
     ) -> torch.Tensor:
+        probs_per_image = logits_per_image.softmax(dim=-1)
+        probs_per_text = logits_per_text.softmax(dim=-1)
+
         loss = (
-            self._ce_loss_fn(logits_per_image, target) + self._ce_loss_fn(logits_per_text.T, target)
+            self._ce_loss_fn(probs_per_image, target) + self._ce_loss_fn(probs_per_text, target.T)
         ) / 2
         return loss

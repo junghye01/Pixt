@@ -71,7 +71,7 @@ def main(cfg) -> None:
 
 
 if __name__ == "__main__":
-    root_dir = "c:\pixt\outputs\pixt_baseline\lightning_logs\\version_5"
+    root_dir = "c:\pixt\outputs\pixt_baseline\lightning_logs\\version_7"
     config_path = root_dir + "\config.yaml"
     ckpt_path = glob.glob(root_dir + "\*.ckpt")[0]
     print(config_path)
