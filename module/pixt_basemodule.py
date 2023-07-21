@@ -120,7 +120,7 @@ class BaselineLitModule(pl.LightningModule):
     def validation_step(self, batch, batch_idx) -> dict[str, Any]:
         image, text, target = self._parse_batch(batch)
         logits_per_image, logits_per_text = self._clip_model(image, text)
-        #target=target.view(-1)
+        
         loss = self._base_loss_func(logits_per_image, logits_per_text, target)
 
         self.log("valid\ce_loss", loss, on_step=False, on_epoch=True, batch_size=image.shape[0])
@@ -153,10 +153,10 @@ class BaselineLitModule(pl.LightningModule):
         image_filename=batch_image_filenames[0]
 
         image_prediction_dict = {}
-        #prediction_dict={}
+        
         for value, index in zip(values, indices):
             image_prediction_dict[classes_list[index]] = value.item()
-       # prediction_dict[image_filename]=image_prediction_dict
+      
 
         self._test_log_dict[image_filename] = image_prediction_dict
         print('result',self._test_log_dict)
