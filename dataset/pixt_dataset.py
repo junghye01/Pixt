@@ -27,9 +27,12 @@ class Pixt_Dataset(Dataset):
     def _get_tags_ko(self, index: int) -> list:
         return eval(self._annotation_df.loc[index]["tags_ko"])
 
+    
+
     def __getitem__(self, index: int) -> dict:
         image_tensor = self._get_image(index)
         tags_ko = self._get_tags_ko(index)
+        
 
         input_data = {"image_tensor": image_tensor, "text_ko": tags_ko}
         return input_data
@@ -49,7 +52,13 @@ class Pixt_Test_Dataset(Dataset):
         file_path = os.path.join(*[self._img_dir, "dataset3", filename])
         return self._transform(Image.open(file_path).convert("RGB")).float()
 
+    def _get_image_filename(self,index:int)-> str:
+        image_filename=str(index + 1) + ".webp"
+        return image_filename
+    
     def __getitem__(self, index: int) -> dict:
         image_tensor = self._get_image(index)
-        input_data = {"image_tensor": image_tensor}
+        image_filename=self._get_image_filename(index)
+
+        input_data = {"image_tensor": image_tensor,"image_filename":image_filename}
         return input_data

@@ -47,6 +47,7 @@ class BaselineLitDataModule(pl.LightningDataModule):
             [sample["image_tensor"] for sample in samples], dim=0
         )
         input_data["text_ko"] = [sample["text_ko"] for sample in samples]
+        
         return input_data
 
     def train_dataloader(self) -> DataLoader:

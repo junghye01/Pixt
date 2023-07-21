@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append("C:\\pixt")
+sys.path.append("/home/irteam/junghye-dcloud-dir/Pixt/code/Pixt")
 
 import os
 import glob
@@ -61,7 +61,7 @@ def main(cfg) -> None:
 
     trainer = Trainer(
         accelerator=cfg["trainer"]["accelerator"],
-        devices=cfg["trainer"]["devices"],
+        devices=[0],
         logger=logger,
         callbacks=callbacks,
         max_epochs=cfg["trainer"]["max_epochs"],
@@ -71,9 +71,11 @@ def main(cfg) -> None:
 
 
 if __name__ == "__main__":
-    root_dir = "c:\pixt\outputs\pixt_baseline\lightning_logs\\version_7"
-    config_path = root_dir + "\config.yaml"
-    ckpt_path = glob.glob(root_dir + "\*.ckpt")[0]
+
+    root_dir = "/home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/outputs/pixt_baseline/lightning_logs/version_17"
+    config_path = root_dir + "/config.yaml"
+    ckpt_path = glob.glob(root_dir + "/*.ckpt")[0]
+
     print(config_path)
     print(ckpt_path)
     cfg = yaml.load(open(config_path, "r"), Loader=yaml.FullLoader)
