@@ -71,9 +71,11 @@ def main(cfg) -> None:
 
 
 if __name__ == "__main__":
+
     root_dir = "/home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/outputs/pixt_baseline/lightning_logs/version_17"
     config_path = root_dir + "/config.yaml"
     ckpt_path = glob.glob(root_dir + "/*.ckpt")[0]
+
     print(config_path)
     print(ckpt_path)
     cfg = yaml.load(open(config_path, "r"), Loader=yaml.FullLoader)

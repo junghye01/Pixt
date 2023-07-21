@@ -147,6 +147,7 @@ class BaselineLitModule(pl.LightningModule):
         values, indices = similarity[0].topk(10)
 
         # batch에 있는 이미지 파일명
+
         batch_image_filenames=batch.get("image_filename",None)
 
         print(batch_image_filenames,batch_idx)

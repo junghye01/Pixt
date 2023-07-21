@@ -9,6 +9,7 @@ import torch
 from omegaconf import DictConfig, OmegaConf
 
 from datamodule import BaselineLitDataModule
+from network import ModifiedResNet
 from loss import BaseLoss
 from module import BaselineLitModule
 from lightning.pytorch.loggers import TensorBoardLogger
@@ -31,6 +32,17 @@ def main(cfg) -> None:
         batch_size=cfg["datamodule"]["batch_size"],
         test_batch_size=cfg["datamodule"]["test_batch_size"],
     )
+
+    # image encoder
+    # image_width = cfg["module"]["encoder"]["image"]["width"]
+    # image_heads = image_width * 32 // 64
+    # image_encoder = ModifiedResNet(
+    #     input_resolution=cfg["module"]["encoder"]["image"]["input_resolution"],
+    #     layers=cfg["module"]["encoder"]["image"]["layers"],
+    #     width=image_width,
+    #     heads=image_heads,
+    #     output_dim=cfg["module"]["encoder"]["image"]["output_dim"],
+    # )
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, _ = clip.load("RN50", device=device)
@@ -73,6 +85,6 @@ def main(cfg) -> None:
 
 
 if __name__ == "__main__":
-    config_path = "./config/baseline.yaml"
+    config_path = "./config/RN50_baseline.yaml"
     cfg = yaml.load(open(config_path, "r"), Loader=yaml.FullLoader)
     main(cfg)
