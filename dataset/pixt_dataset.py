@@ -25,15 +25,22 @@ class Pixt_Dataset(Dataset):
         return self._transform(Image.open(file_path).convert("RGB")).float()
 
     def _get_tags_ko(self, index: int) -> list:
-        return eval(self._annotation_df.loc[index]["tags_ko"])
+        tags_ko=eval(self._annotation_df.loc[index]["tags_ko"])
+
+        if '모션' in tags_ko:
+            tags_ko.remove('모션')
+
+        return tags_ko
 
     
 
     def __getitem__(self, index: int) -> dict:
-        image_tensor = self._get_image(index)
+       
         tags_ko = self._get_tags_ko(index)
-        
-
+        if len(tags_ko)==0:
+            return None
+            
+        image_tensor = self._get_image(index)
         input_data = {"image_tensor": image_tensor, "text_ko": tags_ko}
         return input_data
 

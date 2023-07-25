@@ -43,6 +43,7 @@ class BaselineLitDataModule(pl.LightningDataModule):
 
     def collate_fn(self, samples):
         input_data = {}
+        samples = [sample for sample in samples if sample is not None]
         input_data["image_tensor"] = torch.stack(
             [sample["image_tensor"] for sample in samples], dim=0
         )
