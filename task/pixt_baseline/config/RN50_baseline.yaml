@@ -8,7 +8,7 @@ datamodule:
   test_batch_size: 1
 
 loss:
-  ce_loss_weight: 1.0
+  base_loss_weight: 1.0
 
 module:
   encoder:
@@ -26,7 +26,7 @@ module:
   classes_ko_dir: c:\pixt\data\annotation\all_class_list_ko.pt
   classes_en_dir: c:\pixt\data\annotation\all_class_list_en.pt
   max_length: 500
-  lr: 5.0e-05
+  lr: 1.0e-04
 
 logger:
   save_root: 'c:\pixt\outputs'
@@ -35,11 +35,11 @@ logger:
 
 callbacks:
   checkpoint:
-    monitor: valid\ce_loss
+    monitor: valid/mlsm_loss
     save_top_k: 1
     mode: min
 
 trainer:
   accelerator: gpu
   devices: 1
-  max_epochs: 10
+  max_epochs: 100
