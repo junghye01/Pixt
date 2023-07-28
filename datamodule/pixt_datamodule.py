@@ -4,7 +4,7 @@ import lightning.pytorch as pl
 import torch
 from torch.utils.data import DataLoader
 from dataset import Pixt_Dataset, Pixt_Test_Dataset
-from dataset.transform import Pixt_ImageTransform
+from dataset.transform import Pixt_ImageTransform, Pixt_TextTransform, Pixt_TargetTransform
 
 
 class BaselineLitDataModule(pl.LightningDataModule):
@@ -12,6 +12,9 @@ class BaselineLitDataModule(pl.LightningDataModule):
     def __init__(
         self,
         img_dir: str,
+        max_length: int,
+        classes_ko_dir: str,
+        classes_en_dir: str,
         annotation_dir: dict,
         num_workers: int,
         batch_size: int,
@@ -24,31 +27,38 @@ class BaselineLitDataModule(pl.LightningDataModule):
         self._batch_size = batch_size
         self._test_batch_size = test_batch_size
 
+        self._image_transform = Pixt_ImageTransform()
+        self._text_transform = Pixt_TextTransform(
+            max_length=max_length,
+            classes_ko_dir=classes_ko_dir,
+            classes_en_dir=classes_en_dir,
+        )
+        self._target_transform = Pixt_TargetTransform(max_length=max_length)
+
     def setup(self, stage: Optional[str] = None) -> None:
-        image_transform = Pixt_ImageTransform()
         self._dataset_train = Pixt_Dataset(
             self._img_dir,
             self._annotation_dir["train"],
-            transform=image_transform,
+            image_transform=self._image_transform,
         )
         self._dataset_valid = Pixt_Dataset(
             self._img_dir,
             self._annotation_dir["valid"],
-            transform=image_transform,
+            image_transform=self._image_transform,
         )
         self._dataset_test = Pixt_Test_Dataset(
             self._img_dir,
-            transform=image_transform,
+            image_transform=self._image_transform,
         )
 
     def collate_fn(self, samples):
-        input_data = {}
-        samples = [sample for sample in samples if sample is not None]
-        input_data["image_tensor"] = torch.stack(
-            [sample["image_tensor"] for sample in samples], dim=0
-        )
-        input_data["text_ko"] = [sample["text_ko"] for sample in samples]
-        
+        image_tensor = torch.stack([sample["image_tensor"] for sample in samples], dim=0)
+        text_dict = self._text_transform([sample["text_ko"] for sample in samples])
+        target_tensor = self._target_transform(text_dict["text_en"], text_dict["text_input"])
+
+        input_data = text_dict
+        text_dict["image_tensor"] = image_tensor
+        text_dict["target_tensor"] = target_tensor
         return input_data
 
     def train_dataloader(self) -> DataLoader:
@@ -65,8 +75,8 @@ class BaselineLitDataModule(pl.LightningDataModule):
     def val_dataloader(self) -> DataLoader:
         return DataLoader(
             self._dataset_valid,
-            shuffle=False,
-            drop_last=False,
+            shuffle=True,
+            drop_last=True,
             num_workers=self._num_workers,
             batch_size=self._batch_size,
             persistent_workers=False,
