@@ -9,9 +9,7 @@ class BaseLoss(nn.Module):
         self._ce_loss_fn = torch.nn.MSELoss()
 
     def forward(
-        self, logits_per_image: torch.Tensor, logits_per_text: torch.Tensor, target: torch.Tensor
+        self, similarity: torch.Tensor, target: torch.Tensor
     ) -> torch.Tensor:
-        loss = (
-            self._ce_loss_fn(logits_per_image, target) + self._ce_loss_fn(logits_per_text.T, target)
-        ) / 2
+        loss = self._ce_loss_weight * self._ce_loss_fn(similarity,target)
         return loss
