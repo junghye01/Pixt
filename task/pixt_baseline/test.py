@@ -16,6 +16,7 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch import Trainer
 
+#import wandb
 
 def _set_gpu_environ(cfg: DictConfig) -> None:
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
@@ -24,6 +25,8 @@ def _set_gpu_environ(cfg: DictConfig) -> None:
 
 def main(cfg) -> None:
     _set_gpu_environ(cfg)
+
+    #wandb.init(project='clip',name='MSELoss_test')
 
     lit_data_module = BaselineLitDataModule(
         img_dir=cfg["datamodule"]["image_dir"],
@@ -37,6 +40,10 @@ def main(cfg) -> None:
     model, _ = clip.load("RN50", device=device)
 
     base_loss = BaseLoss(ce_loss_weight=cfg["loss"]["ce_loss_weight"])
+   # wandb.log({
+    #    "loss":round(base_loss,3)
+
+   # })
 
     lit_module = BaselineLitModule(
         clip_model=model,
@@ -46,6 +53,7 @@ def main(cfg) -> None:
         base_loss_func=base_loss,
         optim=torch.optim.Adam,
         lr=cfg["module"]["lr"],
+        save_dir=os.path.join(cfg["logger"]["save_root"], cfg["logger"]["log_dirname"])
     )
 
     save_dir = os.path.join(cfg["logger"]["save_root"], cfg["logger"]["log_dirname"])
@@ -71,7 +79,7 @@ def main(cfg) -> None:
 
 
 if __name__ == "__main__":
-    root_dir = "/home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/outputs/pixt_baseline/lightning_logs/version_17"
+    root_dir = "/home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/outputs/pixt_baseline/lightning_logs/version_36"
     config_path = root_dir + "/config.yaml"
     ckpt_path = glob.glob(root_dir + "/*.ckpt")[0]
     print(config_path)

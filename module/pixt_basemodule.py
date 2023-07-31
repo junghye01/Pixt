@@ -17,6 +17,7 @@ class BaselineLitModule(pl.LightningModule):
         base_loss_func: nn.Module,
         optim: torch.optim,
         lr: float,
+        save_dir : None,
     ):
         super().__init__()
         self._clip_model = clip_model
@@ -29,7 +30,7 @@ class BaselineLitModule(pl.LightningModule):
         self._optim = optim
         self._lr = lr
         self.automatic_optimization = False
-        self.saved_path='/home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/outputs/pixt_baseline/result.json'
+        
         self._test_log_dict = {}
 
     def _get_tags_all_list(self, classes_dir: str) -> list:
@@ -45,10 +46,8 @@ class BaselineLitModule(pl.LightningModule):
         # 중복된 라벨 제거
         unique_text_input_ko_list=list(set(text_input_ko_list))
         
-
         # false label with negative sampling 인 tag 담기
         num_false_labels=self._max_length-len(unique_text_input_ko_list)
-
         available_false_labels=list(set(self._tags_ko_all_list)-set([tag_ko for tag_ko,_ in unique_text_input_ko_list]))
 
         sampled_false_labels=random.sample(available_false_labels,num_false_labels)
@@ -132,13 +131,13 @@ class BaselineLitModule(pl.LightningModule):
         classes_list = list(set([tag_en.lower() for tag_en in self._tags_en_all_list]))
         text_tensor = torch.cat([clip.tokenize(f"a photo of a {c}") for c in classes_list])
 
+        # lower case와 original case 맵핑
+        tag_mapping={tag_en.lower():tag_en for tag_en in self._tags_en_all_list}
         
-
         image_features = self._clip_model.encode_image(image_tensor)
         text_tensor = text_tensor.to(image_features.device)
         text_features = self._clip_model.encode_text(text_tensor)
 
-       
 
         image_features /= image_features.norm(dim=-1, keepdim=True)
         text_features /= text_features.norm(dim=-1, keepdim=True)
@@ -155,12 +154,19 @@ class BaselineLitModule(pl.LightningModule):
         image_prediction_dict = {}
         
         for value, index in zip(values, indices):
-            image_prediction_dict[classes_list[index]] = value.item()
+            eng_tag_lower=classes_list[index]
+            eng_tag=tag_mapping[eng_tag_lower]
+            ko_tag=self._tags_ko_all_list[self._tags_en_all_list.index(eng_tag)]
+
+            #print('뭐지',eng_tag,ko_tag)
+            formatted_tag=f"{eng_tag_lower}({ko_tag})"
+            image_prediction_dict[formatted_tag] = round(value.item(),6)
       
 
         self._test_log_dict[image_filename] = image_prediction_dict
         print('result',self._test_log_dict)
 
     def on_test_end(self) -> None:
-        with open(self.saved_path, "w",encoding='utf-8') as f:
+        with open(os.path.join(self.save_dir,'test_results.json'),"w",encoding='utf-8') as f:
             json.dump(self._test_log_dict,f,indent='\t')
+            print(f'{self.save_dir}에 저장되었습니다')
