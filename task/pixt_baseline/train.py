@@ -82,7 +82,6 @@ def main(cfg) -> None:
         callbacks=callbacks,
         max_epochs=cfg["trainer"]["max_epochs"],
     )
-    ckpt_path = "c:\\pixt\\outputs\\version_1\\epoch=21-step=7480.ckpt"
     trainer.fit(model=lit_module, datamodule=lit_data_module)
 
 
