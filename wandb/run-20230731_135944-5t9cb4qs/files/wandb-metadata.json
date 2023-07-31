@@ -1,0 +1,165 @@
+{
+    "os": "Linux-5.10.0-1055-oem-x86_64-with-glibc2.27",
+    "python": "3.10.12",
+    "heartbeatAt": "2023-07-31T13:59:45.767662",
+    "startedAt": "2023-07-31T13:59:44.847396",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/task/pixt_baseline/test.py",
+    "codePath": "task/pixt_baseline/test.py",
+    "git": {
+        "remote": "https://github.com/junghye01/Pixt.git",
+        "commit": "008c66b01ebc2cd02dd1fc02e7fa7e5af6923808"
+    },
+    "email": "tweetiijh@naver.com",
+    "root": "/home/irteam/junghye-dcloud-dir/Pixt/code/Pixt",
+    "host": "3068b64872e5",
+    "username": "irteam",
+    "executable": "/home/irteam/anaconda3/envs/pixt/bin/python",
+    "cpu_count": 12,
+    "cpu_count_logical": 24,
+    "cpu_freq": {
+        "current": 1006.99825,
+        "min": 1000.0,
+        "max": 3500.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 999.775,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.978,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.62,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.572,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.49,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.264,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.343,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.868,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.377,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.477,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1001.206,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.383,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1131.673,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.19,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.224,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.575,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.155,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 999.697,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.487,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.354,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.101,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 999.894,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.249,
+            "min": 1000.0,
+            "max": 3500.0
+        },
+        {
+            "current": 1000.815,
+            "min": 1000.0,
+            "max": 3500.0
+        }
+    ],
+    "disk": {
+        "total": 1838.7526741027832,
+        "used": 135.61857986450195
+    },
+    "gpu": "Quadro RTX 5000",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "Quadro RTX 5000",
+            "memory_total": 17179869184
+        }
+    ],
+    "memory": {
+        "total": 30.992286682128906
+    }
+}

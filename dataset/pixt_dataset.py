@@ -32,7 +32,6 @@ class Pixt_Dataset(Dataset):
 
         return tags_ko
 
-    
 
     def __getitem__(self, index: int) -> dict:
        

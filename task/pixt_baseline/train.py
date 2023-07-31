@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append("C:\\pixt")
+sys.path.append("/home/irteam/junghye-dcloud-dir/Pixt/code/Pixt")
 
 import os
 import yaml
@@ -15,6 +15,7 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch import Trainer
 
+#import wandb
 
 def _set_gpu_environ(cfg: DictConfig) -> None:
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
@@ -23,6 +24,9 @@ def _set_gpu_environ(cfg: DictConfig) -> None:
 
 def main(cfg) -> None:
     _set_gpu_environ(cfg)
+
+
+    #wandb.init(project='clip',name='MSELoss_train')
 
     lit_data_module = BaselineLitDataModule(
         img_dir=cfg["datamodule"]["image_dir"],
@@ -36,6 +40,9 @@ def main(cfg) -> None:
     model, _ = clip.load("RN50", device=device)
 
     base_loss = BaseLoss(ce_loss_weight=cfg["loss"]["ce_loss_weight"])
+    #wandb.log({
+    #    "loss":round(base_loss,3)
+    #})
 
     lit_module = BaselineLitModule(
         clip_model=model,
@@ -45,6 +52,7 @@ def main(cfg) -> None:
         base_loss_func=base_loss,
         optim=torch.optim.Adam,
         lr=cfg["module"]["lr"],
+        save_dir=None,
     )
 
     save_dir = os.path.join(cfg["logger"]["save_root"], cfg["logger"]["log_dirname"])
@@ -64,7 +72,7 @@ def main(cfg) -> None:
 
     trainer = Trainer(
         accelerator=cfg["trainer"]["accelerator"],
-        devices=cfg["trainer"]["devices"],
+        devices=[0],
         logger=logger,
         callbacks=callbacks,
         max_epochs=cfg["trainer"]["max_epochs"],
@@ -73,6 +81,6 @@ def main(cfg) -> None:
 
 
 if __name__ == "__main__":
-    config_path = "./config/baseline.yaml"
+    config_path = "/home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/task/pixt_baseline/config/baseline.yaml"
     cfg = yaml.load(open(config_path, "r"), Loader=yaml.FullLoader)
     main(cfg)

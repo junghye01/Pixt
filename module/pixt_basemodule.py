@@ -5,6 +5,7 @@ import random
 import torch
 import torch.nn as nn
 import json
+import os
 
 
 class BaselineLitModule(pl.LightningModule):
@@ -105,8 +106,20 @@ class BaselineLitModule(pl.LightningModule):
         optim = self.optimizers()
         image, text, target = self._parse_batch(batch)
 
-        logits_per_image, logits_per_text = self._clip_model(image, text)
-        loss = self._base_loss_func(logits_per_image, logits_per_text, target)
+        image_features = self._clip_model.encode_image(image)
+        text_features = self._clip_model.encode_text(text)
+
+        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+        text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+
+        image_features=image_features.to('cuda').half()
+        text_features=text_features.to('cuda').half()
+
+        similarity = image_features @ text_features.T
+
+        target=target.to('cuda').half()
+        
+        loss = self._base_loss_func(similarity, target)
 
         optim.zero_grad()
         self.manual_backward(loss)
@@ -118,9 +131,20 @@ class BaselineLitModule(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx) -> dict[str, Any]:
         image, text, target = self._parse_batch(batch)
-        logits_per_image, logits_per_text = self._clip_model(image, text)
         
-        loss = self._base_loss_func(logits_per_image, logits_per_text, target)
+        image_features = self._clip_model.encode_image(image)
+        text_features = self._clip_model.encode_text(text)
+        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+        text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+
+        image_features=image_features.to('cuda').half()
+        text_features=text_features.to('cuda').half()
+        
+        similarity = image_features @ text_features.T
+
+
+        target=target.to('cuda').half()
+        loss = self._base_loss_func(similarity, target)
 
         self.log("valid\ce_loss", loss, on_step=False, on_epoch=True, batch_size=image.shape[0])
         loss_dict = {"loss": loss}
