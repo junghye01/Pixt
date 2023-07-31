@@ -23,11 +23,11 @@ logger:
 
 callbacks:
   checkpoint:
-    monitor: valid\ce_loss
+    monitor: valid/mlsm_loss
     save_top_k: 1
     mode: min
 
 trainer:
   accelerator: gpu
   devices: 0
-  max_epochs: 30
+  max_epochs: 2

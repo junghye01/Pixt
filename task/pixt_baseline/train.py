@@ -7,9 +7,10 @@ import yaml
 import clip
 import torch
 from omegaconf import DictConfig, OmegaConf
-
 from datamodule import BaselineLitDataModule
+from network import ModifiedResNet
 from loss import BaseLoss
+from metrics import Accuracy
 from module import BaselineLitModule
 from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
@@ -30,29 +31,42 @@ def main(cfg) -> None:
 
     lit_data_module = BaselineLitDataModule(
         img_dir=cfg["datamodule"]["image_dir"],
+        max_length=cfg["module"]["max_length"],
+        classes_ko_dir=cfg["module"]["classes_ko_dir"],
+        classes_en_dir=cfg["module"]["classes_en_dir"],
         annotation_dir=cfg["datamodule"]["annotation_dir"],
         num_workers=cfg["datamodule"]["num_workers"],
         batch_size=cfg["datamodule"]["batch_size"],
         test_batch_size=cfg["datamodule"]["test_batch_size"],
     )
 
+    # image encoder
+    # image_width = cfg["module"]["encoder"]["image"]["width"]
+    # image_heads = image_width * 32 // 64
+    # image_encoder = ModifiedResNet(
+    #     input_resolution=cfg["module"]["encoder"]["image"]["input_resolution"],
+    #     layers=cfg["module"]["encoder"]["image"]["layers"],
+    #     width=image_width,
+    #     heads=image_heads,
+    #     output_dim=cfg["module"]["encoder"]["image"]["output_dim"],
+    # )
+
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, _ = clip.load("RN50", device=device)
 
-    base_loss = BaseLoss(ce_loss_weight=cfg["loss"]["ce_loss_weight"])
-    #wandb.log({
-    #    "loss":round(base_loss,3)
-    #})
+    base_loss = BaseLoss(base_loss_weight=cfg["loss"]["ce_loss_weight"])
+    accuracy = Accuracy()
+    
 
     lit_module = BaselineLitModule(
         clip_model=model,
-        classes_ko_dir=cfg["module"]["classes_ko_dir"],
-        classes_en_dir=cfg["module"]["classes_en_dir"],
-        max_length=cfg["module"]["max_length"],
         base_loss_func=base_loss,
+        accuracy=accuracy,
         optim=torch.optim.Adam,
         lr=cfg["module"]["lr"],
         save_dir=None,
+        classes_ko_dir=None,
+        classes_en_dir=None,
     )
 
     save_dir = os.path.join(cfg["logger"]["save_root"], cfg["logger"]["log_dirname"])
@@ -81,6 +95,6 @@ def main(cfg) -> None:
 
 
 if __name__ == "__main__":
-    config_path = "/home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/task/pixt_baseline/config/baseline.yaml"
+    config_path = "/home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/task/pixt_baseline/config/RN50_baseline.yaml"
     cfg = yaml.load(open(config_path, "r"), Loader=yaml.FullLoader)
     main(cfg)
