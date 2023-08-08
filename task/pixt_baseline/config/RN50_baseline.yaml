@@ -1,19 +1,31 @@
 datamodule:
-  image_dir: /home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/data/
+  image_dir: c:\pixt\data\
+  max_length: 50
+  classes_ko_dir: c:\pixt\data\annotation\all_class_list_ko.pt
+  classes_en_dir: c:\pixt\data\annotation\all_class_list_en.pt
   annotation_dir:
-    train: /home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/data/annotation/annotation_merged_remove_gap/train.csv
-    valid: /home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/data/annotation/annotation_merged_remove_gap/valid.csv
-  num_workers: 24
-  batch_size: 16
+    train: c:\pixt\data\annotation\annotation_merged_remove_gap\train.csv
+    valid: c:\pixt\data\annotation\annotation_merged_remove_gap\valid.csv
+  num_workers: 0
+  batch_size: 1
   test_batch_size: 1
 
 loss:
   ce_loss_weight: 1.0
 
 module:
-  classes_ko_dir: /home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/data/annotation/all_class_list_ko.pt
-  classes_en_dir: /home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/data/annotation/all_class_list_en.pt
-  max_length: 300
+  encoder:
+    image:
+      input_resolution: 224
+      layers: [3,4,6,3]
+      width: 64
+      heads: 32
+      output_dim: 1024
+    text:
+      width: 512
+      layers: 12
+      heads: 8
+
   lr: 5.0e-05
 
 logger:
@@ -29,5 +41,5 @@ callbacks:
 
 trainer:
   accelerator: gpu
-  devices: 0
-  max_epochs: 2
+  devices: 1
+  max_epochs: 100
