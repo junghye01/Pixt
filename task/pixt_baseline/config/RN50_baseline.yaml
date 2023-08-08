@@ -11,7 +11,7 @@ datamodule:
   test_batch_size: 1
 
 loss:
-  base_loss_weight: 1.0
+  ce_loss_weight: 1.0
 
 module:
   encoder:
@@ -25,10 +25,11 @@ module:
       width: 512
       layers: 12
       heads: 8
+
   lr: 5.0e-05
 
 logger:
-  save_root: 'c:\pixt\outputs'
+  save_root: '/home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/outputs'
   log_dirname: 'pixt_baseline'
   name: lightning_logs
 
