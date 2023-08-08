@@ -57,7 +57,7 @@ class BaselineLitModule(pl.LightningModule):
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
         similarity = image_features @ text_features.T
-
+        
         loss = self._base_loss_func(similarity, target)
         acc = self._accuracy(similarity, text_en, text_input)
 
