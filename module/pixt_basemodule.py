@@ -7,7 +7,11 @@ import json
 import os
 from pathlib import Path
 from datetime import datetime
+import sys
 
+sys.path.append('/home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/module')
+
+from projection import ProjectionHead
 
 class BaselineLitModule(pl.LightningModule):
     def __init__(
@@ -34,7 +38,9 @@ class BaselineLitModule(pl.LightningModule):
     
         self.classes_ko_dir=classes_ko_dir
         self.classes_en_dir=classes_en_dir
-        
+        self.embedding_dim=1024
+        self.projection=ProjectionHead(embedding_dim=self.embedding_dim)
+      
         
         #load tags
         if classes_ko_dir is not None and classes_en_dir is not None:
@@ -52,19 +58,36 @@ class BaselineLitModule(pl.LightningModule):
         text_en = batch.get("text_en", None)
         text_input = batch.get("text_input", None)
         text_tensor = batch.get("text_tensor", None)
+        #label=batch.get('label',None)
         target_tensor = batch.get("target_tensor", None)
 
         return image_tensor, text_tensor, target_tensor, text_en, text_input
 
     def configure_optimizers(self):
-        return self._optim(
+        optimizer=self._optim(
             self._clip_model.parameters(),
             lr=self._lr,
-            betas=(0.9, 0.98),
+            betas=(0.9,0.98),
             eps=1e-6,
-            weight_decay=0.2,
+            weight_decay=1e-3,
         )
 
+      
+        lr_scheduler=torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer,
+            mode='min',
+            patience=2,
+            factor=0.5
+           
+        )
+
+        return{
+            "optimizer":optimizer,
+            "lr_scheduler":lr_scheduler
+        }
+
+
+    
     def forward(self,image,text):
         image_features=self._clip_model.encode_image(image)
         text_features=self._clip_model.encode_text(text)
@@ -77,11 +100,13 @@ class BaselineLitModule(pl.LightningModule):
 
         return image_features,text_features
 
+
     def training_step(self, batch, batch_idx) -> None:
        
 
         optim = self.optimizers()
-        image, text, target, text_en, text_input = self._parse_batch(batch)
+   
+        image, text, target, text_en, text_input= self._parse_batch(batch)
 
         image_features=self._clip_model.encode_image(image)
         text_features=self._clip_model.encode_text(text)
@@ -92,30 +117,30 @@ class BaselineLitModule(pl.LightningModule):
         image_features = image_features.to('cuda').half()
         text_features = text_features.to('cuda').half()
 
-        
-        
+        # getting image and text embedding (with same dimensions)
+        image_embeddings=self.projection(image_features)
+        text_embeddings=self.projection(text_features)
+
         target=target.to('cuda').half()
 
-
-        # cross-entropy loss
+    
+        logits = text_embeddings @ image_embeddings.T
         
-        similarity = image_features @ text_features.T
+        images_similarity=image_embeddings @ image_embeddings.T
+        texts_similarity=text_embeddings @ text_embeddings.T
 
-       
+        loss = self._base_loss_func(images_similarity,texts_similarity,logits)
         
-        loss = self._base_loss_func(similarity, target)
-        acc = self._accuracy(similarity, text_en, text_input)
+       # acc = self._accuracy(similarity, text_en, text_input)
 
+        print(f'{batch_idx} ,{loss}')
         optim.zero_grad()
         self.manual_backward(loss)
         optim.step()
 
         self.log("train/mlsm_loss", loss, on_step=True, on_epoch=True, batch_size=image.shape[0])
-        self.log("train/accuracy", acc, on_step=True, on_epoch=True, batch_size=image.shape[0])
-       # wandb.log({
-            #"train/mlsm_loss":loss,
-           # "train/accuracy":acc,
-        #})
+        #self.log("train/accuracy", acc, on_step=True, on_epoch=True, batch_size=image.shape[0])
+       
 
 
 
@@ -131,20 +156,23 @@ class BaselineLitModule(pl.LightningModule):
         image_features=image_features.to('cuda').half()
         text_features=text_features.to('cuda').half()
       
+        # getting image and text embeddings (with same dimension)
+        image_embeddings=self.projection(image_features)
+        text_embeddings=self.projection(text_features)
 
-        similarity = image_features @ text_features.T
-
+        # calculating the loss
+        logits=text_embeddings @ image_embeddings.T
+        images_similarity=image_embeddings @ image_embeddings.T
+        texts_similarity=text_embeddings @ text_embeddings.T
        
-
         target=target.to('cuda').half()
-       
 
-        loss = self._base_loss_func(similarity, target)
+        loss = self._base_loss_func(images_similarity,texts_similarity,logits)
         
-        acc = self._accuracy(similarity, text_en, text_input)
+        #acc = self._accuracy(similarity, text_en, text_input)
 
         self.log("valid/mlsm_loss", loss, on_step=True, on_epoch=True, batch_size=image.shape[0])
-        self.log("valid/accuracy", acc, on_step=True, on_epoch=True, batch_size=image.shape[0])
+        #self.log("valid/accuracy", acc, on_step=True, on_epoch=True, batch_size=image.shape[0])
        
 
     def test_step(self, batch, batch_idx) -> None:
@@ -152,7 +180,7 @@ class BaselineLitModule(pl.LightningModule):
         classes_list = list(set([tag_en.lower() for tag_en in self._tags_en_all_list]))
         text_tensor = torch.cat([clip.tokenize(f"a photo of a {c}") for c in classes_list])
 
-        #print(len(classes_list))
+       
         # lower case와 original case 맵핑
         tag_mapping={tag_en.lower():tag_en for tag_en in self._tags_en_all_list}
         
@@ -197,17 +225,8 @@ class BaselineLitModule(pl.LightningModule):
         #print("result", self._test_log_dict)
 
     def on_test_end(self) -> None:
-        with open(os.path.join(self.save_dir,'test_results.json'),"w",encoding='utf-8') as f:
+        with open(os.path.join(self.save_dir,'test_230820.json'),"w",encoding='utf-8') as f:
             json.dump(self._test_log_dict,f,indent='\t',ensure_ascii=False)
             print(f'{self.save_dir}에 test log가 저장되었습니다')
 
-"""
-    def on_epoch_end(self) -> None:
-        avg_loss = self.trainer.callback_metrics['valid/mlsm_loss']
-        avg_acc = self.trainer.callback_metrics['valid/accuracy']
 
-        with open(self.progress_log_path, "a", encoding='utf-8') as f:
-            result_str = f"Validation - average loss: {avg_loss:.3f}, average acc: {avg_acc:.3f}\n"
-            f.write(result_str)
-
-"""
