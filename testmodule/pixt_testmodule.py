@@ -44,7 +44,7 @@ class ModelLoader(nn.Module):
         self.classes_ko_dir=cfg['module']['classes_ko_dir']
         self.classes_en_dir=cfg['module']['classes_en_dir']
 
-        self.base_loss=BaseLoss(base_loss_weight=cfg['loss']['ce_loss_weight'])
+        self.base_loss=BaseLoss(base_loss_weight=cfg['loss']['ce_loss_weight'],batch_size=cfg['datamodule']['batch_size'])
 
         self.accuracy=Accuracy()
 
@@ -105,27 +105,29 @@ class ModelTester(nn.Module):
         plt.show()
     
     def test_step(self):
-        # image -> image tensor
-        images=[self.image_transform(Image.open(image_path).convert('RGB')).float() for image_path in self.image_paths ]
-        images=torch.stack(images).to('cuda')
 
-        # text -> text token
-        classes_list = list(set([tag_en for tag_en in self._tags_en_all_list]))
-        text_tensor = torch.cat([clip.tokenize(f"a photo of a {c}") for c in classes_list])
-        text_tensor=text_tensor.to('cuda')
+        for image_path in self.image_paths:
+            # image -> image tensor
+            image=self.image_transform(Image.open(image_path).convert('RGB')).float()
+            image=image.unsqueeze(0).to('cuda')
 
-        true_labels = self._get_true_labels(self.image_paths, self.ann_dir)
+            # text -> text token
+            classes_list = list(set([tag_en for tag_en in self._tags_en_all_list]))
+            text_tensor = torch.cat([clip.tokenize(f"a photo of a {c}") for c in classes_list])
+            text_tensor=text_tensor.to('cuda')
+
+            true_labels = self._get_true_labels([image_path], self.ann_dir)
 
         # prediction
-        with torch.no_grad():
-            image_features,text_features=self.model(images,text_tensor)
+            with torch.no_grad():
+                image_features,text_features=self.model(image,text_tensor)
 
-            similarity = (100.0 * image_features @ text_features.T).softmax(dim=-1)
+                similarity = (100.0 *image_features @ text_features.T).softmax(dim=-1)
 
-            values,indices=similarity[0].topk(10)
+                values,indices=similarity[0].topk(10)
 
-            for i in range(len(images)):
-                image_filename=os.path.basename(self.image_paths[i])
+             
+                image_filename=os.path.basename(image_path)
                 image_prediction_dict={}
                 for value,index in zip(values,indices):
                     eng_tag=classes_list[index]
@@ -134,9 +136,9 @@ class ModelTester(nn.Module):
                     formatted_tag = f"{eng_tag}({ko_tag})"
                     image_prediction_dict[formatted_tag] = round(value.item(), 6)
 
-                self.test_log_dict[image_filename] = {
-                "prediction": image_prediction_dict,
-                "true_label": true_labels[i],
+            self.test_log_dict[image_filename] = {
+                    "prediction": image_prediction_dict,
+                    "true_label": true_labels,
             }
 
         return self.test_log_dict
