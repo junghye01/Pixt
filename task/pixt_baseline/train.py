@@ -16,18 +16,18 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch import Trainer
 
-#import wandb
 
 def _set_gpu_environ(cfg: DictConfig) -> None:
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = str(cfg["trainer"]["devices"])
+    os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 
 
 def main(cfg) -> None:
     _set_gpu_environ(cfg)
 
-
-    #wandb.init(project='clip',name='MSELoss_train')
 
     lit_data_module = BaselineLitDataModule(
         img_dir=cfg["datamodule"]["image_dir"],
@@ -38,6 +38,7 @@ def main(cfg) -> None:
         num_workers=cfg["datamodule"]["num_workers"],
         batch_size=cfg["datamodule"]["batch_size"],
         test_batch_size=cfg["datamodule"]["test_batch_size"],
+       
     )
 
     # image encoder
@@ -54,7 +55,7 @@ def main(cfg) -> None:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, _ = clip.load("RN50", device=device)
 
-    base_loss = BaseLoss(base_loss_weight=cfg["loss"]["ce_loss_weight"])
+    base_loss = BaseLoss(base_loss_weight=cfg["loss"]["ce_loss_weight"],batch_size=cfg['datamodule']['batch_size'])
     accuracy = Accuracy()
     
 
@@ -62,11 +63,11 @@ def main(cfg) -> None:
         clip_model=model,
         base_loss_func=base_loss,
         accuracy=accuracy,
-        optim=torch.optim.Adam,
+        optim=torch.optim.AdamW,
         lr=cfg["module"]["lr"],
-        save_dir=None,
-        classes_ko_dir=None,
-        classes_en_dir=None,
+        save_dir=os.path.join(cfg["logger"]["save_root"], cfg["logger"]["log_dirname"]),
+        classes_ko_dir=cfg["module"]["classes_ko_dir"],
+        classes_en_dir=cfg["module"]["classes_en_dir"],
     )
 
     save_dir = os.path.join(cfg["logger"]["save_root"], cfg["logger"]["log_dirname"])
@@ -84,17 +85,23 @@ def main(cfg) -> None:
     )
     callbacks = [checkpoint_callback]
 
+  
+
     trainer = Trainer(
         accelerator=cfg["trainer"]["accelerator"],
         devices=[0],
         logger=logger,
         callbacks=callbacks,
         max_epochs=cfg["trainer"]["max_epochs"],
+        accumulate_grad_batches=cfg['trainer']['accumulate_grad_batches'], # 그래디언트 누적
+        
     )
     trainer.fit(model=lit_module, datamodule=lit_data_module)
 
 
 if __name__ == "__main__":
+ 
+    
     config_path = "/home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/task/pixt_baseline/config/RN50_baseline.yaml"
     cfg = yaml.load(open(config_path, "r"), Loader=yaml.FullLoader)
     main(cfg)

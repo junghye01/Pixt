@@ -16,9 +16,15 @@ class Accuracy(nn.Module):
             true_labels = text_en[index]
             predicted_labels = []
             values, indices = similarity[index].topk(len(true_labels))
+      
+            
             for _, index in zip(values, indices):
                 predicted_labels.append(text_input[index])
             intersection = list(set(true_labels) & set(predicted_labels))
             batch_accuracy.append(round((len(intersection) / len(true_labels)) * 100, 6))
-
+            
         return np.mean(batch_accuracy)
+
+
+
+
