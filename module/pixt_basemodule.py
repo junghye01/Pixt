@@ -127,9 +127,11 @@ class BaselineLitModule(pl.LightningModule):
         images_similarity=image_embeddings @ image_embeddings.T
         texts_similarity=text_embeddings @ text_embeddings.T
 
+
         loss = self._base_loss_func(images_similarity,texts_similarity,logits)
         
        # acc = self._accuracy(similarity, text_en, text_input)
+
 
         print(f'{batch_idx} ,{loss}')
         optim.zero_grad()

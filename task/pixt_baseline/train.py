@@ -9,7 +9,7 @@ import torch
 from omegaconf import DictConfig, OmegaConf
 from datamodule import BaselineLitDataModule
 from network import ModifiedResNet
-from loss import BaseLoss
+from loss import MultiLabelSoftMarginLoss, MSELoss
 from metrics import Accuracy
 from module import BaselineLitModule
 from lightning.pytorch.loggers import TensorBoardLogger
@@ -28,12 +28,16 @@ def _set_gpu_environ(cfg: DictConfig) -> None:
 def main(cfg) -> None:
     _set_gpu_environ(cfg)
 
+<<<<<<< HEAD
+=======
+    # wandb.init(project='clip',name='MSELoss_train')
+>>>>>>> fc800e12d5250084fa102bbd35bf2791745d9071
 
     lit_data_module = BaselineLitDataModule(
         img_dir=cfg["datamodule"]["image_dir"],
-        max_length=cfg["module"]["max_length"],
-        classes_ko_dir=cfg["module"]["classes_ko_dir"],
-        classes_en_dir=cfg["module"]["classes_en_dir"],
+        max_length=cfg["datamodule"]["max_length"],
+        classes_ko_dir=cfg["datamodule"]["classes_ko_dir"],
+        classes_en_dir=cfg["datamodule"]["classes_en_dir"],
         annotation_dir=cfg["datamodule"]["annotation_dir"],
         num_workers=cfg["datamodule"]["num_workers"],
         batch_size=cfg["datamodule"]["batch_size"],
@@ -55,9 +59,12 @@ def main(cfg) -> None:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, _ = clip.load("RN50", device=device)
 
+<<<<<<< HEAD
     base_loss = BaseLoss(base_loss_weight=cfg["loss"]["ce_loss_weight"],batch_size=cfg['datamodule']['batch_size'])
+=======
+    base_loss = MultiLabelSoftMarginLoss(base_loss_weight=cfg["loss"]["ce_loss_weight"])
+>>>>>>> fc800e12d5250084fa102bbd35bf2791745d9071
     accuracy = Accuracy()
-    
 
     lit_module = BaselineLitModule(
         clip_model=model,
@@ -104,4 +111,12 @@ if __name__ == "__main__":
     
     config_path = "/home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/task/pixt_baseline/config/RN50_baseline.yaml"
     cfg = yaml.load(open(config_path, "r"), Loader=yaml.FullLoader)
+    main(cfg)
+
+    cfg["datamodule"]["annotation_dir"][
+        "train"
+    ] = "c:\\pixt\data\\annotation\\annotation_remove_mgf\\train.csv"
+    cfg["datamodule"]["annotation_dir"][
+        "valid"
+    ] = "c:\\pixt\data\\annotation\\annotation_remove_mgf\\valid.csv"
     main(cfg)
