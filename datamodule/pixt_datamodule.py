@@ -4,7 +4,7 @@ import lightning.pytorch as pl
 import torch
 from torch.utils.data import DataLoader
 from dataset import Pixt_Dataset, Pixt_Test_Dataset
-from dataset.transform import Pixt_ImageTransform, Pixt_TextTransform, Pixt_TargetTransform
+from dataset.transform import Pixt_ImageTransform, Pixt_ValidationTest_Transform, Pixt_TextTransform2, Pixt_TargetTransform2
 
 
 class BaselineLitDataModule(pl.LightningDataModule):
@@ -28,12 +28,13 @@ class BaselineLitDataModule(pl.LightningDataModule):
         self._test_batch_size = test_batch_size
 
         self._image_transform = Pixt_ImageTransform()
-        self._text_transform = Pixt_TextTransform(
+        self._valid_test_transform=Pixt_ValidationTest_Transform()
+        self._text_transform = Pixt_TextTransform2(
             max_length=max_length,
             classes_ko_dir=classes_ko_dir,
             classes_en_dir=classes_en_dir,
         )
-        self._target_transform = Pixt_TargetTransform(max_length=max_length)
+        self._target_transform = Pixt_TargetTransform2(batch_size=batch_size)
 
     def setup(self, stage: Optional[str] = None) -> None:
         self._dataset_train = Pixt_Dataset(
@@ -44,11 +45,11 @@ class BaselineLitDataModule(pl.LightningDataModule):
         self._dataset_valid = Pixt_Dataset(
             self._img_dir,
             self._annotation_dir["valid"],
-            image_transform=self._image_transform,
+            image_transform=self._valid_test_transform,
         )
         self._dataset_test = Pixt_Test_Dataset(
             self._img_dir,
-            image_transform=self._image_transform,
+            image_transform=self._valid_test_transform,
         )
 
     def collate_fn(self, samples):

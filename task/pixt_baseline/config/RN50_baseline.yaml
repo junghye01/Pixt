@@ -4,16 +4,29 @@ datamodule:
   classes_ko_dir: c:\pixt\data\annotation\all_class_list_ko.pt
   classes_en_dir: c:\pixt\data\annotation\all_class_list_en.pt
   annotation_dir:
+<<<<<<< HEAD
+    train: /home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/data/annotation/annotation_remove_mgf/train_reduction.csv
+    valid: /home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/data/annotation/annotation_remove_mgf/valid.csv
+  num_workers: 24
+  batch_size: 8
+=======
     train: c:\pixt\data\annotation\annotation_merged_remove_gap\train.csv
     valid: c:\pixt\data\annotation\annotation_merged_remove_gap\valid.csv
   num_workers: 0
   batch_size: 1
+>>>>>>> fc800e12d5250084fa102bbd35bf2791745d9071
   test_batch_size: 1
 
 loss:
   ce_loss_weight: 1.0
 
 module:
+<<<<<<< HEAD
+  classes_ko_dir: /home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/data/annotation/all_class_list_ko.pt
+  classes_en_dir: /home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/data/annotation/all_class_list_en.pt
+  max_length: 70
+  lr: 1.0e-05
+=======
   encoder:
     image:
       input_resolution: 224
@@ -27,7 +40,9 @@ module:
       heads: 8
 
   lr: 5.0e-05
+>>>>>>> fc800e12d5250084fa102bbd35bf2791745d9071
 
+ 
 logger:
   save_root: '/home/irteam/junghye-dcloud-dir/Pixt/code/Pixt/outputs'
   log_dirname: 'pixt_baseline'
@@ -41,5 +56,11 @@ callbacks:
 
 trainer:
   accelerator: gpu
+<<<<<<< HEAD
+  devices: 0
+  max_epochs: 250
+  accumulate_grad_batches: 1 
+=======
   devices: 1
   max_epochs: 100
+>>>>>>> fc800e12d5250084fa102bbd35bf2791745d9071

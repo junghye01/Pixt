@@ -58,7 +58,7 @@ class BaselineLitModule(pl.LightningModule):
         text_en = batch.get("text_en", None)
         text_input = batch.get("text_input", None)
         text_tensor = batch.get("text_tensor", None)
-        #label=batch.get('label',None)
+      
         target_tensor = batch.get("target_tensor", None)
 
         return image_tensor, text_tensor, target_tensor, text_en, text_input
@@ -102,8 +102,6 @@ class BaselineLitModule(pl.LightningModule):
 
 
     def training_step(self, batch, batch_idx) -> None:
-       
-
         optim = self.optimizers()
    
         image, text, target, text_en, text_input= self._parse_batch(batch)
@@ -140,14 +138,14 @@ class BaselineLitModule(pl.LightningModule):
         self.manual_backward(loss)
         optim.step()
 
-        self.log("train/mlsm_loss", loss, on_step=True, on_epoch=True, batch_size=image.shape[0])
+        self.log("train/ce_loss", loss, on_step=True, on_epoch=True, batch_size=image.shape[0])
         #self.log("train/accuracy", acc, on_step=True, on_epoch=True, batch_size=image.shape[0])
        
 
 
 
     def validation_step(self, batch, batch_idx) -> dict[str, Any]:
-        image, text, target,text_en,text_input = self._parse_batch(batch)
+        image, text, target,text_en,text_input= self._parse_batch(batch)
         
         
         image_features = self._clip_model.encode_image(image)
@@ -171,9 +169,9 @@ class BaselineLitModule(pl.LightningModule):
 
         loss = self._base_loss_func(images_similarity,texts_similarity,logits)
         
-        #acc = self._accuracy(similarity, text_en, text_input)
+        #acc = self._accuracy(logits, text_en, val_text_input)
 
-        self.log("valid/mlsm_loss", loss, on_step=True, on_epoch=True, batch_size=image.shape[0])
+        self.log("valid/ce_loss", loss, on_step=True, on_epoch=True, batch_size=image.shape[0])
         #self.log("valid/accuracy", acc, on_step=True, on_epoch=True, batch_size=image.shape[0])
        
 
